@@ -44,14 +44,15 @@
                 </table-column>
                 <table-column label="" :sortable="false" :filterable="false">
                     <template slot-scope="row">
-                        <longpress
+                        <button class="btn btn-sm btn-outline-danger btn-block" @click="trashData(row)">Trash</button>
+                        <!--<longpress
                                 class="btn btn-sm btn-outline-danger btn-block"
                                 :value="row"
                                 duration="1"
                                 :on-confirm="trashData"
                                 pressing-text="{$rcounter}..."
                                 action-text="Done">
-                            Trash</longpress>
+                            Trash</longpress>-->
                     </template>
                 </table-column>
             </table-component>

@@ -14,7 +14,7 @@ class TrainingDataController extends Controller
      */
     public function index()
     {
-        return TrainingData::get(['id', 'device', 'type', 'category', 'created_at', 'updated_at']);
+        return TrainingData::get(['id', 'device', 'type', 'category', 'ml_classification', 'created_at', 'updated_at']);
     }
 
 

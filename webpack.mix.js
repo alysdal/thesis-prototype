@@ -14,7 +14,7 @@ let mix = require('laravel-mix');
 mix.js('resources/assets/js/app.js', 'public/js')
    .sass('resources/assets/sass/app.scss', 'public/css')
     .sourceMaps()
-    .extract(['vue', 'chart.js', 'bootstrap', 'vue-table-component', 'vue-longpress'])
+    .extract(['vue', 'chart.js', 'bootstrap', 'vue-table-component', 'vue-longpress', 'brain.js'])
     .browserSync({
         proxy: "thesis.test"
     });

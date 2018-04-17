@@ -9,6 +9,7 @@ require('./bootstrap');
 
 
 window.Vue = require('vue');
+window.brain = require('brain.js');
 
 
 /**

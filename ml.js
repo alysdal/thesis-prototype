@@ -24,9 +24,9 @@ net.train(data, {
 //console.log(baba);
 
 var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
+  host: "webscale.andreaslysdal.com",
+  user: "thesis",
+  password: "wQErdj8VQyrawijLxavNGLyt",
   database : 'thesis'
 });
 

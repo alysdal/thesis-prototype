@@ -3,9 +3,9 @@ var mqtt = require('mqtt')
 var mysql = require('mysql');
 
 var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
+    host: "webscale.andreaslysdal.com",
+    user: "thesis",
+    password: "wQErdj8VQyrawijLxavNGLyt",
     database : 'thesis'
 });
 

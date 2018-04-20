@@ -25,8 +25,8 @@ net.train(data, {
 
 var con = mysql.createConnection({
   host: "localhost",
-  user: "root",
-  password: "",
+  user: "nicklasjust",
+  password: "just3044",
   database : 'thesis'
 });
 

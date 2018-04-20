@@ -74,14 +74,18 @@
                 latestId: 0,
                 viewLatestInGraph: true,
                 categories: ['not interesting', 'drill', 'saw', 'big drill'],
-                viewingId: null
+                viewingId: null,
+                isUpdating: false,
             }
         },
         mounted() {
             this.fillData();
             setInterval(() => {
-                this.fillData();
-            }, 1000)
+                if(!this.isUpdating) {
+                    this.isUpdating = true;
+                    this.fillData();
+                }
+            }, 5000)
         },
         methods: {
             fillData() {
@@ -97,6 +101,7 @@
                             }
 
                         }
+                        this.isUpdating = false;
                     })
             },
             setCategory(row) {

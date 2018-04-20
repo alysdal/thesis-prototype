@@ -74,6 +74,12 @@ getClassifiedData(results => {
         logPeriod: 10,
     });
 
+    log('Resetting all classifications..');
+
+    con.query('update training_data set ml_classification = NULL;');
+
+    log('Classifying..')
+
     log();
     getUnclassifiedData(results => {
         results.forEach(res => {

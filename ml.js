@@ -32,7 +32,7 @@ var con = mysql.createConnection({
 
 con.connect(function(err) {
   if (err) throw err;
-  console.log("Connected!");
+  //console.log("Connected!");
 });
 
 getClassifiedData(results => {
@@ -59,7 +59,7 @@ getClassifiedData(results => {
         trainingData.push(thisPoint);
     });
 
-    log(trainingData[0]);
+    //log(trainingData[0]);
 
     log('Training model with ', trainingData.length, 'classified entries');
 
@@ -69,9 +69,16 @@ getClassifiedData(results => {
         {input: { r: 0.5, g: 0.5, b: 1.0 }, output: { white: 1 }}];*/
 
     net.train(trainingData, {
-        log: true,
-        iterations: 1000,
-        logPeriod: 10,
+        // Defaults values --> expected validation
+        iterations: 10000,    // the maximum times to iterate the training data --> number greater than 0
+        errorThresh: 0.005, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
+        log: true,           // true to use console.log, when a function is supplied it is used --> Either true or a function
+        logPeriod: 100,        // iterations between logging out --> number greater than 0
+        learningRate: 0.3,    // scales with delta to effect training rate --> number between 0 and 1
+        momentum: 0.1,        // scales with next layer's change value --> number between 0 and 1
+        callback: null,       // a periodic call back that can be triggered while training --> null or function
+        callbackPeriod: 10,   // the number of iterations through the training data between callback calls --> number greater than 0
+        timeout: Infinity     // the max number of milliseconds to train for --> number greater than 0
     });
 
     log('Resetting all classifications..');
@@ -81,14 +88,16 @@ getClassifiedData(results => {
     log('Classifying..')
 
     log();
-    getUnclassifiedData(results => {
+    getAllData(results => {
         results.forEach(res => {
             let MLClassification = net.run(res.data);
             let best = brain.likely(res.data, net)
-            log('Classifying #' +res.id, ' ', res.device, '\tas', JSON.stringify(MLClassification));
+            //log('Classifying #' +res.id, ' ', res.device, '\tas', JSON.stringify(MLClassification));
             setClassification(res.id, best);
         });
+        log('Done.')
         saveModel(JSON.stringify(net.toJSON()));
+        log('Saving model..')
     });
 });
 
@@ -134,9 +143,10 @@ function getClassifiedData(cb) {
     });
 }
 
-function getUnclassifiedData(cb) {
+function getAllData(cb) {
 
-    con.query('SELECT * FROM training_data WHERE category is NULL AND deleted_at is NULL', function (error, results, fields) {
+    //con.query('SELECT * FROM training_data WHERE category is NULL AND deleted_at is NULL', function (error, results, fields) {
+    con.query('SELECT * FROM training_data WHERE deleted_at is NULL', function (error, results, fields) {
         if (error) throw error;
 
         let arrayResults = processRowData(results);
@@ -208,7 +218,7 @@ function setClassification(rowId, value) {
     con.query('UPDATE training_data SET ml_classification = ? WHERE id = ?', [value, rowId], function (error, results, fields) {
         if (error) throw error;
         // Neat!
-        console.log('Updated!', rowId)
+        //console.log('Updated!', rowId)
     });
 }
 

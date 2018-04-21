@@ -70,8 +70,8 @@ getClassifiedData(results => {
 
     net.train(trainingData, {
         // Defaults values --> expected validation
-        iterations: 10000,    // the maximum times to iterate the training data --> number greater than 0
-        errorThresh: 0.005, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
+        iterations: 5000,    // the maximum times to iterate the training data --> number greater than 0
+        errorThresh: 0.008, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
         log: true,           // true to use console.log, when a function is supplied it is used --> Either true or a function
         logPeriod: 100,        // iterations between logging out --> number greater than 0
         learningRate: 0.3,    // scales with delta to effect training rate --> number between 0 and 1

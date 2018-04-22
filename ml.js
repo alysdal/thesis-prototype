@@ -35,71 +35,112 @@ con.connect(function(err) {
   //console.log("Connected!");
 });
 
-getClassifiedData(results => {
-    var net = new brain.NeuralNetwork();
+let args = process.argv.slice(2);
 
+function classifyData(rows, net) {
+    return new Promise((resolve, reject) => {
+        let promises = [];
+        rows.forEach(res => {
+            let MLClassification = net.run(res.data);
+            let best = brain.likely(res.data, net);
+            promises.push(setClassification(res.id, best, JSON.stringify(MLClassification)));
+        });
+        return PromiseAllWithProgress(promises, drawProgress).then(() => {
+            resolve();
+        });
+    })
+}
+
+if (args.indexOf('--classify') !== -1) {
+    let net;
+
+    getMLModel().then(model => {
+        log('got model #', model.id);
+        net = new brain.NeuralNetwork();
+        net.fromJSON(JSON.parse(model.content));
+        log('loaded model');
+        return getAllData();
+
+    }).then(results => {
+        log('got all rows');
+        return classifyData(results, net);
+    }).then(() => {
+        log('Done.');
+        process.exit();
+    });
+
+
+} else {
+    let net = new brain.NeuralNetwork();
     let trainingData = [];
 
+    // train model and classify
+    getClassifiedData().then(results => {
 
-    // construct brain.js input object
-    results.forEach(row => {
 
-        let accData = row.data;
+        // construct brain.js input object
+        results.forEach(row => {
 
-        //log(accData.length)
-        let humanClassification = row.category;
+            let accData = row.data;
 
-        let thisPoint = {
-            input: accData,
-            output: {}
-        };
+            //log(accData.length)
+            let humanClassification = row.category;
 
-        thisPoint.output[humanClassification] = 1;
+            let thisPoint = {
+                input: accData,
+                output: {}
+            };
 
-        trainingData.push(thisPoint);
-    });
+            thisPoint.output[humanClassification] = 1;
 
-    //log(trainingData[0]);
-
-    log('Training model with ', trainingData.length, 'classified entries');
-
-    /*let data = [
-        {input: { r: 0.03, g: 0.7 }, output: { black: 1 }},
-        {input: { r: 0.16, b: 0.2 }, output: { white: 1 }},
-        {input: { r: 0.5, g: 0.5, b: 1.0 }, output: { white: 1 }}];*/
-
-    net.train(trainingData, {
-        // Defaults values --> expected validation
-        iterations: 5000,    // the maximum times to iterate the training data --> number greater than 0
-        errorThresh: 0.008, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
-        log: true,           // true to use console.log, when a function is supplied it is used --> Either true or a function
-        logPeriod: 100,        // iterations between logging out --> number greater than 0
-        learningRate: 0.3,    // scales with delta to effect training rate --> number between 0 and 1
-        momentum: 0.1,        // scales with next layer's change value --> number between 0 and 1
-        callback: null,       // a periodic call back that can be triggered while training --> null or function
-        callbackPeriod: 10,   // the number of iterations through the training data between callback calls --> number greater than 0
-        timeout: Infinity     // the max number of milliseconds to train for --> number greater than 0
-    });
-
-    log('Resetting all classifications..');
-
-    con.query('update training_data set ml_classification = NULL;');
-
-    log('Classifying..')
-
-    log();
-    getAllData(results => {
-        results.forEach(res => {
-            let MLClassification = net.run(res.data);
-            let best = brain.likely(res.data, net)
-            //log('Classifying #' +res.id, ' ', res.device, '\tas', JSON.stringify(MLClassification));
-            setClassification(res.id, best);
+            trainingData.push(thisPoint);
         });
-        log('Done.')
-        saveModel(JSON.stringify(net.toJSON()));
+
+        //log(trainingData[0]);
+
+        log('Training model with ', trainingData.length, 'classified entries');
+
+
+        net.train(trainingData, {
+            // Defaults values --> expected validation
+            iterations: 5000,    // the maximum times to iterate the training data --> number greater than 0
+            errorThresh: 0.008, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
+            log: true,           // true to use console.log, when a function is supplied it is used --> Either true or a function
+            logPeriod: 100,        // iterations between logging out --> number greater than 0
+            learningRate: 0.3,    // scales with delta to effect training rate --> number between 0 and 1
+            momentum: 0.1,        // scales with next layer's change value --> number between 0 and 1
+            callback: null,       // a periodic call back that can be triggered while training --> null or function
+            callbackPeriod: 10,   // the number of iterations through the training data between callback calls --> number greater than 0
+            timeout: Infinity     // the max number of milliseconds to train for --> number greater than 0
+        });
+
+
+    }).then(() => {
+        log('Resetting all classifications..');
+        return new Promise((resolve, reject) => {
+            con.query('update training_data set ml_classification = NULL;', function (error, results, fields) {
+                if (error) throw error;
+                // connected!
+                resolve();
+            });
+        });
+    }).then(() => {
+        log('getting all row data')
+        return getAllData();
+    }).then(results => {
+        log('Classifying..');
+        return classifyData(results, net);
+    }).then(() => {
         log('Saving model..')
+        return saveModel(JSON.stringify(net.toJSON()));
+    }).then(() => {
+        log('Done!')
+        process.exit();
     });
-});
+
+}
+
+
 
 function processRowData(inputArray) {
     let arrayResults = [];
@@ -133,25 +174,29 @@ function processRowData(inputArray) {
 
 }
 
-function getClassifiedData(cb) {
-    con.query('SELECT * FROM training_data WHERE category is not NULL AND deleted_at is NULL', function (error, results, fields) {
-        if (error) throw error;
+function getClassifiedData() {
+    return new Promise((resolve, reject) => {
+        con.query('SELECT * FROM training_data WHERE category is not NULL AND deleted_at is NULL', function (error, results, fields) {
+            if (error) throw error;
 
-        let arrayResults = processRowData(results);
+            let arrayResults = processRowData(results);
 
-        cb(arrayResults);
-    });
+            resolve(arrayResults);
+        });
+    })
 }
 
 function getAllData(cb) {
+    return new Promise((resolve, reject) => {
+        //con.query('SELECT * FROM training_data WHERE category is NULL AND deleted_at is NULL', function (error, results, fields) {
+        con.query('SELECT * FROM training_data WHERE deleted_at is NULL ORDER BY id DESC', function (error, results, fields) {
+            if (error) throw error;
 
-    //con.query('SELECT * FROM training_data WHERE category is NULL AND deleted_at is NULL', function (error, results, fields) {
-    con.query('SELECT * FROM training_data WHERE deleted_at is NULL', function (error, results, fields) {
-        if (error) throw error;
+            let arrayResults = processRowData(results);
 
-        let arrayResults = processRowData(results);
 
-        cb(arrayResults);
+            resolve(arrayResults);
+        });
     });
 
 }
@@ -214,21 +259,59 @@ function map (num, in_min, in_max, out_min, out_max) {
     return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-function setClassification(rowId, value) {
-    con.query('UPDATE training_data SET ml_classification = ? WHERE id = ?', [value, rowId], function (error, results, fields) {
-        if (error) throw error;
-        // Neat!
-        //console.log('Updated!', rowId)
+function setClassification(rowId, value, all) {
+    return new Promise((resolve, reject) => {
+        con.query('UPDATE training_data SET ml_classification = ?, ml_classification_all = ? WHERE id = ?', [value, all, rowId], function (error, results, fields) {
+            if (error) throw error;
+            // Neat!
+            //console.log('Updated!', rowId)
+            //log('Classifying #' +rowId, ' ', '\tas', value, 'all:', all);
+            resolve();
+        });
     });
 }
 
 function saveModel(jsonString) {
-
-    con.query('INSERT INTO `training_models` (`id`, `content`, `created_at`, `updated_at`) VALUES (NULL, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)', [jsonString], function (error, results, fields) {
-        if (error) throw error;
-        // Neat!
-        console.log('Saved net!');
+    return new Promise((resolve, reject) => {
+        con.query('INSERT INTO `training_models` (`id`, `content`, `created_at`, `updated_at`) VALUES (NULL, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)', [jsonString], function (error, results, fields) {
+            if (error) throw error;
+            resolve();
+        });
     });
 }
+function getMLModel(id) {
+    let sql;
+    if (typeof id === 'undefined') {
+        sql = "SELECT * FROM training_models ORDER BY id DESC LIMIT 1";
+    } else {
+        sql = "SELECT * FROM training_models WHERE id = " + id + " LIMIT 1";
+    }
+    return new Promise((resolve, reject) => {
+        con.query(sql, function (error, results, fields) {
+            if (error) throw error;
+            resolve(results[0]);
+        });
+    })
+}
 
+function drawProgress(p)  {
+    process.stdout.write(`${p.toFixed(2)}% done classifying..`);
+    if (p !== 100) {
+        process.stdout.write(`\r`);
+    } else {
+        progress.stdout.write('\n');
+    }
+    //console.log();
+}
 
+function PromiseAllWithProgress(proms, progress_cb) {
+    let d = 0;
+    progress_cb(0);
+    proms.forEach((p) => {
+        p.then(()=> {
+            d ++;
+            progress_cb( (d * 100) / proms.length );
+        });
+    });
+    return Promise.all(proms);
+}

@@ -67,9 +67,16 @@
             },
             fixedYAxis: function(newVal, oldVal) { // watch it
                 if (newVal === true) {
-                    this.options.scales.yAxes[0].ticks.max = 5000;
-                    this.options.scales.yAxes[0].ticks.min = -5000;
-                    this.options.scales.yAxes[0].ticks.stepSize = 250;
+                    if ( ! this.show.x && ! this.show.y && ! this.show.z ) {
+                        // d is only positive
+                        this.options.scales.yAxes[0].ticks.max = 10000;
+                        this.options.scales.yAxes[0].ticks.min = 0;
+                        this.options.scales.yAxes[0].ticks.stepSize = 250;
+                    } else {
+                        this.options.scales.yAxes[0].ticks.max = 5000;
+                        this.options.scales.yAxes[0].ticks.min = -5000;
+                        this.options.scales.yAxes[0].ticks.stepSize = 250;
+                    }
                 } else {
                     this.options.scales.yAxes[0].ticks.max = undefined;
                     this.options.scales.yAxes[0].ticks.min = undefined;

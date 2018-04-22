@@ -296,10 +296,10 @@ function getMLModel(id) {
 
 function drawProgress(p)  {
     process.stdout.write(`${p.toFixed(2)}% done classifying..`);
-    if (p !== 100) {
-        process.stdout.write(`\r`);
+    if (p === 100) {
+        log();
     } else {
-        progress.stdout.write('\n');
+        process.stdout.write(`\r`);
     }
     //console.log();
 }

@@ -22,6 +22,7 @@ window.brain = require('brain.js');
 //Vue.component('example-component', require('./components/bab.vue'));
 Vue.component('random-chart', require('./components/RandomChart.vue'));
 Vue.component('data-list', require('./components/DataList.vue'));
+Vue.component('classification', require('./components/Classification.vue'));
 
 import { TableComponent, TableColumn } from 'vue-table-component';
 

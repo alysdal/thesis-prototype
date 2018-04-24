@@ -72,3 +72,4 @@ Route::get('trainmodel', function () {
 
     return $response;
 });
+Route::get('classifications', 'ClassificationController@getData');

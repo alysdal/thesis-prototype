@@ -43,7 +43,11 @@ function classifyData(rows, net) {
         rows.forEach(res => {
             let MLClassification = net.run(res.data);
             let best = brain.likely(res.data, net);
-            promises.push(setClassification(res.id, best, JSON.stringify(MLClassification)));
+            let value = best;
+            if (MLClassification[best] < 0.7) {
+                value = 'unclassifyable';
+            }
+            promises.push(setClassification(res.id, value, JSON.stringify(MLClassification)));
         });
         return PromiseAllWithProgress(promises, drawProgress).then(() => {
             resolve();

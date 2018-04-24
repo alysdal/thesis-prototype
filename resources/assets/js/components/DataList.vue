@@ -27,7 +27,13 @@
                         </div>
                     </template>
                 </table-column>
-                <table-column show="ml_classification" label="ML"></table-column>
+                <table-column show="ml_classification" label="ML">
+                    <template slot-scope="row">
+                        <div :style="{'background-color': stringToColor(row.ml_classification), 'border-radius': '5px'}" class="text-center">
+                            {{ row.ml_classification }}
+                        </div>
+                    </template>
+                </table-column>
                 <table-column show="category" label="Classified as">
                     <template slot-scope="row">
                         <div :style="{'border-radius': '5px', 'border': row.category ? '2px solid' : '','border-color': stringToColor(row.category)}" class="text-center">

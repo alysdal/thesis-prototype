@@ -30,7 +30,7 @@
                 <table-column show="ml_classification" label="ML">
                     <template slot-scope="row">
                         <div :style="{'background-color': stringToColor(row.ml_classification), 'border-radius': '5px'}" class="text-center">
-                            {{ row.ml_classification }}
+                            {{ row.ml_classification }} 
                         </div>
                     </template>
                 </table-column>

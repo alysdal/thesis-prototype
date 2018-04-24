@@ -55,6 +55,11 @@ function classifyData(rows, net) {
     })
 }
 
+let onlyNewData = false;
+if (args.indexOf('--new') !== -1) {
+    onlyNewData = true;
+}
+
 if (args.indexOf('--classify') !== -1) {
     let net;
 
@@ -63,10 +68,15 @@ if (args.indexOf('--classify') !== -1) {
         net = new brain.NeuralNetwork();
         net.fromJSON(JSON.parse(model.content));
         log('loaded model');
+
+        if (onlyNewData) {
+            return getNewData();
+        }
+
         return getAllData();
 
     }).then(results => {
-        log('got all rows');
+        log(`got ${results.length} rows`);
         return classifyData(results, net);
     }).then(() => {
         log('Done.');
@@ -120,6 +130,9 @@ if (args.indexOf('--classify') !== -1) {
 
 
     }).then(() => {
+        log('Saving model..')
+        return saveModel(JSON.stringify(net.toJSON()));
+    }).then(() => {
         log('Resetting all classifications..');
         return new Promise((resolve, reject) => {
             con.query('update training_data set ml_classification = NULL;', function (error, results, fields) {
@@ -134,9 +147,6 @@ if (args.indexOf('--classify') !== -1) {
     }).then(results => {
         log('Classifying..');
         return classifyData(results, net);
-    }).then(() => {
-        log('Saving model..')
-        return saveModel(JSON.stringify(net.toJSON()));
     }).then(() => {
         log('Done!')
         process.exit();
@@ -190,19 +200,26 @@ function getClassifiedData() {
     })
 }
 
-function getAllData(cb) {
+function getAllData() {
     return new Promise((resolve, reject) => {
         //con.query('SELECT * FROM training_data WHERE category is NULL AND deleted_at is NULL', function (error, results, fields) {
         con.query('SELECT * FROM training_data WHERE deleted_at is NULL ORDER BY id DESC', function (error, results, fields) {
             if (error) throw error;
-
             let arrayResults = processRowData(results);
-
-
             resolve(arrayResults);
         });
     });
+}
 
+function getNewData() {
+    return new Promise((resolve, reject) => {
+        //con.query('SELECT * FROM training_data WHERE category is NULL AND deleted_at is NULL', function (error, results, fields) {
+        con.query('SELECT * FROM training_data WHERE deleted_at is NULL AND ml_classification is NULL ORDER BY id DESC', function (error, results, fields) {
+            if (error) throw error;
+            let arrayResults = processRowData(results);
+            resolve(arrayResults);
+        });
+    });
 }
 
 function calcDeltas(frames) {

@@ -29,8 +29,8 @@
                 </table-column>
                 <table-column show="ml_classification" label="ML">
                     <template slot-scope="row">
-                        <div :style="{'background-color': stringToColor(row.ml_classification), 'border-radius': '5px'}" class="text-center">
-                            {{ row.ml_classification }} 
+                        <div v-bind:title="row.ml_classification_all" :style="{'background-color': stringToColor(row.ml_classification), 'border-radius': '5px'}" class="text-center">
+                            <a>{{ row.ml_classification }}</a>
                         </div>
                     </template>
                 </table-column>

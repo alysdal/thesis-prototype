@@ -5,28 +5,36 @@ namespace App\Http\Controllers;
 use App\TrainingData;
 use Illuminate\Http\Request;
 
-class ClassificationController extends Controller {
+class ClassificationController extends Controller
+{
 
 
-    public function getData() {
+    public function getData()
+    {
         $data = [];
 
         $entries = TrainingData::distinct('device')->get(['device']);
 
         foreach ($entries as $entry) {
-            $notInteresting = TrainingData::where('device', $entry->device)->where('ml_classification', 'not interesting')->count();
-            $saw = TrainingData::where('device', $entry->device)->where('ml_classification', 'saw')->count();
-            $drill = TrainingData::where('device', $entry->device)->where('ml_classification', 'drill')->count();
-            $bigDrill = TrainingData::where('device', $entry->device)->where('ml_classification', 'big drill')->count();
+            $notInteresting = TrainingData::where('device', $entry->device)->where('ml_classification', 'not interesting')->where('category', null)->count();
+            $saw = TrainingData::where('device', $entry->device)->where('ml_classification', 'saw')->where('category', null)->count();
+            $drill = TrainingData::where('device', $entry->device)->where('ml_classification', 'drill')->where('category', null)->count();
+            $bigDrill = TrainingData::where('device', $entry->device)->where('ml_classification', 'big drill')->where('category', null)->count();
+            $total = $saw + $drill + $bigDrill;
 
             $entryData = [
-                'not interesting' => $notInteresting,
                 'saw' => $saw,
                 'drill' => $drill,
-                'big drill' => $bigDrill
+                'big drill' => $bigDrill,
             ];
 
-            $data[$entry->device] = $entryData;
+            $obj = [
+                "name" => $entry->device,
+                "entries" => $entryData,
+                "total" => $total,
+            ];
+
+            $data[] = $obj;
         }
 
         return json_encode($data);

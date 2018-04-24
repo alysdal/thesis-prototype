@@ -19,4 +19,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::apiResource('trainingdata', 'TrainingDataController');
 
-Route::get('classification', 'ClassificationController@getData');
+Route::get('classifications', 'ClassificationController@getData');

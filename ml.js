@@ -85,12 +85,80 @@ if (args.indexOf('--classify') !== -1) {
 
 
 } else {
-    let net = new brain.NeuralNetwork();
-    let trainingData = [];
+    let netRelevantSelection = new brain.NeuralNetwork();
+    let netClassify = new brain.NeuralNetwork();
 
     // train model and classify
-    getClassifiedData().then(results => {
+    getClassifiedData()/*.then(results => {
 
+        let trainingData = [];
+
+        // construct brain.js input object
+        results.forEach(row => {
+
+            let accData = row.data;
+
+            //log(accData.length)
+            let humanClassification = row.category;
+
+            let thisPoint = {
+                input: accData,
+                output: {}
+            };
+
+            if (humanClassification === 'not interesting') {
+                thisPoint.output['not interesting'] = 1;
+            } else {
+                thisPoint.output['non'] = 1;
+            }
+
+            trainingData.push(thisPoint);
+        });
+
+        //log(trainingData[0]);
+
+        log('Training not interesting model with ', trainingData.length, 'classified entries');
+
+
+        netRelevantSelection.train(trainingData, {
+            // Defaults values --> expected validation
+            iterations: 5000,    // the maximum times to iterate the training data --> number greater than 0
+            errorThresh: 0.008, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
+            log: true,           // true to use console.log, when a function is supplied it is used --> Either true or a function
+            logPeriod: 100,        // iterations between logging out --> number greater than 0
+            learningRate: 0.3,    // scales with delta to effect training rate --> number between 0 and 1
+            momentum: 0.1,        // scales with next layer's change value --> number between 0 and 1
+            callback: null,       // a periodic call back that can be triggered while training --> null or function
+            callbackPeriod: 10,   // the number of iterations through the training data between callback calls --> number greater than 0
+            timeout: Infinity     // the max number of milliseconds to train for --> number greater than 0
+        });
+
+
+    }).then(() => {
+        log('Saving model..')
+        return saveModel(JSON.stringify(netRelevantSelection.toJSON()), 'relevantselection');
+    }).then(() => {
+        log('Resetting all classifications..');
+        return new Promise((resolve, reject) => {
+            con.query('update training_data set ml_classification = NULL;', function (error, results, fields) {
+                if (error) throw error;
+                // connected!
+                resolve();
+            });
+        });
+    }).then(() => {
+        log('getting all row data')
+        return getAllData();
+    }).then(results => {
+        log('Classifying not interesting rows..');
+        return classifyData(results, netRelevantSelection);
+    })*/.then(results => {
+        log('CLASSIFICATION MODEL');
+        return getClassifiedWithoutNotInterestingData()
+    }).then(results => {
+
+
+        let trainingData = [];
 
         // construct brain.js input object
         results.forEach(row => {
@@ -115,7 +183,7 @@ if (args.indexOf('--classify') !== -1) {
         log('Training model with ', trainingData.length, 'classified entries');
 
 
-        net.train(trainingData, {
+        netClassify.train(trainingData, {
             // Defaults values --> expected validation
             iterations: 5000,    // the maximum times to iterate the training data --> number greater than 0
             errorThresh: 0.008, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
@@ -131,27 +199,17 @@ if (args.indexOf('--classify') !== -1) {
 
     }).then(() => {
         log('Saving model..')
-        return saveModel(JSON.stringify(net.toJSON()));
-    }).then(() => {
-        log('Resetting all classifications..');
-        return new Promise((resolve, reject) => {
-            con.query('update training_data set ml_classification = NULL;', function (error, results, fields) {
-                if (error) throw error;
-                // connected!
-                resolve();
-            });
-        });
+        return saveModel(JSON.stringify(netClassify.toJSON()), 'classificationModel');
     }).then(() => {
         log('getting all row data')
         return getAllData();
     }).then(results => {
         log('Classifying..');
-        return classifyData(results, net);
+        return classifyData(results, netClassify);
     }).then(() => {
         log('Done!')
         process.exit();
     });
-
 }
 
 
@@ -191,6 +249,18 @@ function processRowData(inputArray) {
 function getClassifiedData() {
     return new Promise((resolve, reject) => {
         con.query('SELECT * FROM training_data WHERE category is not NULL AND deleted_at is NULL', function (error, results, fields) {
+            if (error) throw error;
+
+            let arrayResults = processRowData(results);
+
+            resolve(arrayResults);
+        });
+    })
+}
+
+function getClassifiedWithoutNotInterestingData() {
+    return new Promise((resolve, reject) => {
+        con.query('SELECT * FROM training_data WHERE category is not NULL AND category != "not interesting" AND ml_classification != "not interesting" AND deleted_at is NULL', function (error, results, fields) {
             if (error) throw error;
 
             let arrayResults = processRowData(results);
@@ -292,9 +362,9 @@ function setClassification(rowId, value, all) {
     });
 }
 
-function saveModel(jsonString) {
+function saveModel(jsonString, type) {
     return new Promise((resolve, reject) => {
-        con.query('INSERT INTO `training_models` (`id`, `content`, `created_at`, `updated_at`) VALUES (NULL, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)', [jsonString], function (error, results, fields) {
+        con.query('INSERT INTO `training_models` (`id`, `type`, `content`, `created_at`, `updated_at`) VALUES (NULL, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)', [type, jsonString], function (error, results, fields) {
             if (error) throw error;
             resolve();
         });

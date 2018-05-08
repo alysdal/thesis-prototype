@@ -27,7 +27,8 @@ var con = mysql.createConnection({
   host: "webscale.andreaslysdal.com",
   user: "thesis",
   password: "wQErdj8VQyrawijLxavNGLyt",
-  database : 'thesis'
+  database : 'thesis',
+    multipleStatements: true
 });
 
 con.connect(function(err) {
@@ -50,6 +51,33 @@ function classifyData(rows, net) {
             promises.push(setClassification(res.id, value, JSON.stringify(MLClassification)));
         });
         return PromiseAllWithProgress(promises, drawProgress).then(() => {
+            resolve();
+        });
+    })
+}
+
+function fastClassify(rows, net) {
+    return new Promise((resolve, reject) => {
+        let sqlQuery = "";
+        let rowNumber = 0;
+        rows.forEach(res => {
+            let MLClassification = net.run(res.data);
+            let best = brain.likely(res.data, net);
+            let value = best;
+            if (MLClassification[best] < 0.7) {
+                value = 'unclassifyable';
+            }
+            sqlQuery += 'UPDATE training_data SET ml_classification = '+con.escape(best)
+                +', ml_classification_all = '+con.escape(JSON.stringify(MLClassification))
+                +' WHERE id = '+ con.escape(res.id) +';';
+            drawProgress( (rowNumber*100) / rows.length);
+            rowNumber++;
+        });
+
+        console.log('Updating DB');
+
+        return con.query(sqlQuery, function (error, results, fields) {
+            if (error) throw error;
             resolve();
         });
     })

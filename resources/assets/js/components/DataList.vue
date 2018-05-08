@@ -23,35 +23,39 @@
                 <table-column show="created_at" label="Date" data-type="date:YYYY-MM-DD HH:mm:ss">
                     <template slot-scope="row">
                         <div :style="{'background-color': viewingId === row.id ?  '#2ecc71' : '', 'border-radius': '5px'}" class="text-center">
-                            {{ row.created_at }}
+                            <small>{{ row.created_at.substring(5) }}</small>
                         </div>
                     </template>
                 </table-column>
                 <table-column show="ml_classification" label="ML">
                     <template slot-scope="row">
                         <div v-bind:title="row.ml_classification_all" :style="{'background-color': stringToColor(row.ml_classification), 'border-radius': '5px'}" class="text-center">
-                            <a>{{ row.ml_classification }}</a>
+                            <small>{{ row.ml_classification }}</small>
                         </div>
                     </template>
                 </table-column>
                 <table-column show="category" label="Classified as">
                     <template slot-scope="row">
-                        <div :style="{'border-radius': '5px', 'border': row.category ? '2px solid' : '','border-color': stringToColor(row.category)}" class="text-center">
-                            {{ row.category }}
+                        <div :style="{'border-radius': '4px', 'border': row.category ? '2px solid' : '','border-color': stringToColor(row.category)}" class="text-center">
+                            <small>{{ row.category }}</small>
                         </div>
                     </template>
                 </table-column>
                 <table-column label="" :sortable="false" :filterable="false">
                     <template slot-scope="row">
+                        <button @click="setCategory(row, t, row.category == t)"  v-for="t of categories" :value="t" class="btn btn-sm" :class="{'btn-primary': row.category == t}">{{ t }}</button>
+                        <!--<button @click="setCategory(row, '', row.category == null)" value="" class="btn btn-sm" :class="{'btn-primary': row.category == null}">non</button>-->
+                        <!--
                         <select @change="setCategory(row)" style="width: 100%;" v-model="row.category">
                             <option></option>
-                            <option v-for="t of categories" :value="t">{{ t }}</option>
+                            <option>{{ t }}</option>
                         </select>
+                        -->
                     </template>
                 </table-column>
                 <table-column label="" :sortable="false" :filterable="false">
                     <template slot-scope="row">
-                        <button class="btn btn-sm btn-outline-danger btn-block" @click="trashData(row)">Trash</button>
+                        <button class="btn btn-sm btn-outline-danger btn-block" @click="trashData(row)">X</button>
                         <!--<longpress
                                 class="btn btn-sm btn-outline-danger btn-block"
                                 :value="row"
@@ -85,17 +89,24 @@
             }
         },
         mounted() {
-            this.fillData();
+            this.updateData();
             setInterval(() => {
+                this.updateData();
+            }, 5000)
+        },
+        methods: {
+            updateData() {
                 if(!this.isUpdating) {
                     this.isUpdating = true;
                     this.fillData();
                 }
-            }, 5000)
-        },
-        methods: {
+            },
             fillData() {
                 axios.get('api/trainingdata')
+                    .catch(err => {
+                        console.dir('ERROR', err);
+                        this.isUpdating = false;
+                    })
                     .then(response => {
                         this.rows = response.data.reverse();
                         let lastRowId =  this.rows[0].id
@@ -110,21 +121,26 @@
                         this.isUpdating = false;
                     })
             },
-            setCategory(row) {
+            setCategory(row, value, unset) {
                 console.log('setCategory', row);
-                axios.put('api/trainingdata/' + row.id, {category:row.category}).then((res) => {
+                if (unset) {
+                    value = '';
+                }
+                axios.put('api/trainingdata/' + row.id, {category:value}).then((res) => {
                     //console.log(res.data);
+                    this.updateData();
                 })
             },
             trashData(row) {
                 console.log('trashData', row);
                 axios.delete('api/trainingdata/' + row.id).then((res) => {
                     //console.log(res.data);
+                    updateData();
                 });
                 this.viewData(null, true)
             },
             rowClicked(row) {
-                console.log(row);
+                //console.log(row);
                 this.viewData(row.data, false);
             },
             viewData(rowData, live) {
@@ -219,5 +235,9 @@
     }
     .btn {
         padding:1px 2px 1px 2px;
+        margin-right:3px;
+    }
+    .btn-sm {
+        border: 1px solid lightgray;
     }
 </style>

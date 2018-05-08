@@ -42,9 +42,9 @@
                             display:true,
                             type: 'linear',
                             ticks: {
-                                min: -5000,
-                                max: 5000,
-                                stepSize: 250
+                                min: -30000,
+                                max: 30000,
+                                stepSize: 1000
                             }
                         }]
                     }

@@ -160,7 +160,7 @@ if (args.indexOf('--classify') !== -1) {
     }).then(() => {
         log('Saving model..')
         return saveModel(JSON.stringify(net.toJSON()));
-    }).then(() => {
+    /*}).then(() => {
         log('Resetting all classifications..');
         return new Promise((resolve, reject) => {
             con.query('update training_data set ml_classification = NULL;', function (error, results, fields) {
@@ -168,13 +168,13 @@ if (args.indexOf('--classify') !== -1) {
                 // connected!
                 resolve();
             });
-        });
+        });*/
     }).then(() => {
         log('getting all row data')
         return getAllData();
     }).then(results => {
         log('Classifying..');
-        return classifyData(results, net);
+        return fastClassify(results, net);
     }).then(() => {
         log('Done!')
         process.exit();

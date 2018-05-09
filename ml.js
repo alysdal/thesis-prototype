@@ -8,21 +8,6 @@ var log = function(){
 
 var net = new brain.NeuralNetwork();
 
-/*let data = [
-    {input: { r: 0.03, g: 0.7 }, output: { black: 1 }},
-    {input: { r: 0.16, b: 0.2 }, output: { white: 1 }},
-    {input: { r: 0.5, g: 0.5, b: 1.0 }, output: { white: 1 }}];
-
-net.train(data, {
-  log: true,
-    iterations: 20000,
-    logPeriod: 100,
-});
-*/
-
-//let baba = net.run({ r: 1, g: 0.4, b: 0 });  // [0]
-//console.log(baba);
-
 var con = mysql.createConnection({
   host: "webscale.andreaslysdal.com",
   user: "thesis",
@@ -289,18 +274,42 @@ function calcDeltas(frames) {
         lastData.d = d;
 
 
-        let processedRow = {
+        let processedRow;
+
+        //let processedRow = {
         //    x: map(x, -25000, 25000, -1, 1),
         //   y: map(y, -25000, 25000, -1, 1),
         //    z: map(z, -25000, 25000, -1, 1),
-            d:map(d, 0, 100000, 0, 1),
+        //    d:map(d, 0, 100000, 0, 1),
+        //};
+
+        /*
+        processedRow = {
+            x: map(x, -65535, 65535, 0, 1),
+            y: map(y, -65535, 65535, 0, 1),
+            z: map(z, -65535, 65535, 0, 1),
+            //d:map(d, 0, 100000, 0, 1),
         };
+        */
 
-        processedRow = map(d, 0, 100000, 0, 1);
+        processedRow = [
+            map(x, -65535, 65535, 0, 1),
+            map(y, -65535, 65535, 0, 1),
+            map(z, -65535, 65535, 0, 1),
+            map(d, 0, 120000, 0, 1),
+        ];
+
+        //processedRow = map(d, 0, 100000, 0, 1);
 
 
-        result.push(processedRow)
+        //result.push(processedRow[0]);
+        //result.push(processedRow[1]);
+        //result.push(processedRow[2]);
+        //result.push(processedRow[2]);
+        result.push(processedRow[3]);
     })
+    //progress.exit();
+    //console.log(result);
     return result;
 }
 

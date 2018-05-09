@@ -41,6 +41,38 @@ function classifyData(rows, net) {
     })
 }
 
+function evaluateModel(rows, net) {
+    let rowNumber = 0;
+    let correct = 0;
+    let total = 0;
+    let toolsCorrect = {};
+    let toolsTotal = {};
+
+    rows.forEach(row => {
+        let MLClassification = net.run(row.data);
+        let best = brain.likely(row.data, net);
+        let value = best;
+        if (MLClassification[best] < 0.9) {
+            value = 'unclassifyable';
+        }
+
+        if (row.category === 'not interesting') {
+            return;
+        }
+        total++;
+        toolsTotal['']
+
+        if (value === row.category) {
+            correct++;
+            toolsCorrect[row.category]
+        }
+
+        rowNumber++;
+    });
+
+    log("Model evaluation")
+}
+
 function fastClassify(rows, net) {
     return new Promise((resolve, reject) => {
         let sqlQuery = "";
@@ -98,7 +130,11 @@ if (args.indexOf('--classify') !== -1) {
 
 
 } else {
-    let net = new brain.NeuralNetwork();
+    let net = new brain.NeuralNetwork({
+        activation: 'sigmoid', // activation function
+        //hiddenLayers: [100],
+        //learningRate: 0.6 // global learning rate, useful when training using streams
+    });
     let trainingData = [];
 
     // train model and classify
@@ -133,7 +169,7 @@ if (args.indexOf('--classify') !== -1) {
             iterations: 5000,    // the maximum times to iterate the training data --> number greater than 0
             errorThresh: 0.005, // default: 0.005  // the acceptable error percentage from training data --> number between 0 and 1
             log: true,           // true to use console.log, when a function is supplied it is used --> Either true or a function
-            logPeriod: 100,        // iterations between logging out --> number greater than 0
+            logPeriod: 10,        // iterations between logging out --> number greater than 0
             learningRate: 0.3,    // scales with delta to effect training rate --> number between 0 and 1
             momentum: 0.1,        // scales with next layer's change value --> number between 0 and 1
             callback: null,       // a periodic call back that can be triggered while training --> null or function
@@ -145,15 +181,6 @@ if (args.indexOf('--classify') !== -1) {
     }).then(() => {
         log('Saving model..')
         return saveModel(JSON.stringify(net.toJSON()));
-    /*}).then(() => {
-        log('Resetting all classifications..');
-        return new Promise((resolve, reject) => {
-            con.query('update training_data set ml_classification = NULL;', function (error, results, fields) {
-                if (error) throw error;
-                // connected!
-                resolve();
-            });
-        });*/
     }).then(() => {
         log('getting all row data')
         return getAllData();
@@ -179,7 +206,7 @@ function processRowData(inputArray) {
 
         let framesAdjusted = calcDeltas(frames);
 
-        let frameSize = 50;
+        let frameSize = 100;
 
         if (framesAdjusted.length > frameSize) {
             framesAdjusted = framesAdjusted.slice(0, frameSize)
@@ -252,13 +279,13 @@ function calcDeltas(frames) {
         let z = row.z;
 
         if (lastData.x === null) {
-            lastData.x = x;
+            lastData.x = 0;
         }
         if (lastData.y === null) {
-            lastData.y = y;
+            lastData.y = 0;
         }
         if (lastData.z === null) {
-            lastData.z = z;
+            lastData.z = 0;
         }
 
         x = lastData.x - x;

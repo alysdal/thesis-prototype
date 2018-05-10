@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DeviceLocation;
 use App\TrainingData;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,8 @@ class ClassificationController extends Controller
             $bigDrill = TrainingData::where('device', $entry->device)->where('ml_classification', 'big drill')->where('category', null)->count();
             $total = $saw + $drill + $bigDrill;
 
+            $location = DeviceLocation::where('device', $entry->device)->orderBy('id', 'DESC')->first();
+
             $entryData = [
                 'saw' => $saw,
                 'drill' => $drill,
@@ -30,6 +33,7 @@ class ClassificationController extends Controller
 
             $obj = [
                 "name" => $entry->device,
+                "location" => $location,
                 "entries" => $entryData,
                 "total" => $total,
             ];
@@ -39,4 +43,5 @@ class ClassificationController extends Controller
 
         return json_encode($data);
     }
+
 }

@@ -48,6 +48,10 @@ client.on('message', function (topic, message) {
         saveMotion(msg, device);
     }
 
+    if (type === 'location') {
+        saveLocation(msg, device);
+    }
+
 });
 
 function saveMotion(message, device) {
@@ -79,6 +83,25 @@ function saveMotion(message, device) {
         data: JSON.stringify(coords)
     };
     save(insertData);
+}
+
+function saveLocation(message, device) {
+
+    const parts = message.split('\t');
+
+
+    var insertData  = {
+        device: device,
+        lat: parts[0],
+        lon: parts[1],
+        precision: parts[2],
+    };
+
+    var query = con.query('INSERT INTO `devices_locations` SET ?', insertData, function (error, results, fields) {
+        if (error) throw error;
+        // Neat!
+        console.log('SAVED!')
+    });
 }
 
 function save(data) {

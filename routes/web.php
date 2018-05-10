@@ -18,3 +18,8 @@ Route::get('/', function () {
 Route::get('/classification', function() {
     return view('classification');
 });
+
+Route::get('/map', function() {
+    return view('map');
+});
+

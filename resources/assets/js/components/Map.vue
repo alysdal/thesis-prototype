@@ -16,7 +16,7 @@
 
             <l-marker v-for="device in devices" v-bind:data="device" v-bind:key="device.title" :lat-lng="device.position" @click="onClickHardware(device)">
                 <!--<l-tooltip :content="device.title" />-->
-                <l-popup :content="device.title + '<br>' + 'Last used: 3 hours ago' + '<br>' + 'On construction site since: November 2017'"></l-popup>
+                <l-popup :content="device.classification + '<br>' + 'Last used: 3 hours ago' + '<br>' + 'On construction site since: November 2017'"></l-popup>
             </l-marker>
 
 
@@ -45,6 +45,7 @@
             LCircle
         },
         mounted() {
+            setInterval(this.getClassification, 20000);
             this.getClassification();
         },
         methods : {
@@ -79,6 +80,7 @@
                         return {
                             id: item.name,
                             title: item.name,
+                            classification: item.classification[0],
                             position: L.latLng(item.location.lat, item.location.lon),
                             visible: true
                         };

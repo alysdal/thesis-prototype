@@ -10,10 +10,13 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
     <link href="/css/app.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
+          integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+          crossorigin=""/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
-<div id="app" class="" style="height: 98vh; width: 100%; overflow: auto;">
+<div id="app" class="" style="height: 100vh; width: 100%; overflow: auto;">
     <gmap></gmap>
 </div>
 <script src="/js/manifest.js"></script>

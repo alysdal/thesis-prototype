@@ -10,9 +10,16 @@
                           :name="tileMap.name" :visible="tileMap.visible"
                           :url="tileMap.url" :attribution="tileMap.attribution" />
 
-            <l-marker v-for="device in devices" :lat-lng="device.position" @move="" @click="onClickHardware(device)">
-                <l-tooltip :content="device.title" />
+            <l-marker :lat-lng="test">
+                <!--<l-tooltip :content="device.title" />-->
             </l-marker>
+
+            <l-marker v-for="device in devices" v-bind:data="device" v-bind:key="device.title" :lat-lng="device.position" @click="onClickHardware(device)">
+                <!--<l-tooltip :content="device.title" />-->
+                <l-popup :content="device.title + '<br>' + 'Last used: 3 hours ago' + '<br>' + 'On construction site since: November 2017'"></l-popup>
+            </l-marker>
+
+
 
             <l-circle :lat-lng="circle.center" :radius="circle.radius"></l-circle>
 
@@ -91,15 +98,16 @@
                     center: L.latLng(56.161451, 10.135240),
                     radius: 1000
                 },
+                test: L.latLng(47.413220, -1.219482),
                 map: {
-                    zoom: 14,
+                    zoom: 15,
                     center: L.latLng(56.161451, 10.135240),
-                    bounds: null,
+                    //bounds: null,
                     url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                     attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-                    icons: {},
-                    layerCtrlPosition: 'bottomleft',
-                    markerExpander: null,
+                    //icons: {},
+                    //layerCtrlPosition: 'bottomleft',
+                    //markerExpander: null,
                     baseMaps: [
                         {
                             name: 'Color map',
@@ -133,6 +141,5 @@
 
 <style scoped="">
 
-    @import '~leaflet/dist/leaflet.css';
 
 </style>

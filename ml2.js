@@ -41,38 +41,6 @@ function classifyData(rows, net) {
     })
 }
 
-function evaluateModel(rows, net) {
-    let rowNumber = 0;
-    let correct = 0;
-    let total = 0;
-    let toolsCorrect = {};
-    let toolsTotal = {};
-
-    rows.forEach(row => {
-        let MLClassification = net.run(row.data);
-        let best = brain.likely(row.data, net);
-        let value = best;
-        if (MLClassification[best] < 0.9) {
-            value = 'unclassifyable';
-        }
-
-        if (row.category === 'not interesting') {
-            return;
-        }
-        total++;
-        toolsTotal['']
-
-        if (value === row.category) {
-            correct++;
-            toolsCorrect[row.category]
-        }
-
-        rowNumber++;
-    });
-
-    log("Model evaluation")
-}
-
 function fastClassify(rows, net) {
     return new Promise((resolve, reject) => {
         let sqlQuery = "";
@@ -206,7 +174,7 @@ function processRowData(inputArray) {
 
         let framesAdjusted = calcDeltas(frames);
 
-        let frameSize = 50;
+        let frameSize = 100;
 
         if (framesAdjusted.length > frameSize) {
             framesAdjusted = framesAdjusted.slice(0, frameSize)

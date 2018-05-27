@@ -83,7 +83,7 @@
                 rows: [],
                 latestId: 0,
                 viewLatestInGraph: true,
-                categories: ['not interesting', 'drill', 'saw', 'big drill'],
+                categories: ['not interesting', 'drill', 'saw', 'big drill', 'angle grinder'],
                 viewingId: null,
                 isUpdating: false,
             }

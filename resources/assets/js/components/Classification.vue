@@ -1,25 +1,21 @@
 <template>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 device" v-for="device in devices">
-                <div class="card card-default">
-                    <div class="card-header">
-                        <h1>
-                            {{device.name}}
-                        </h1>
-                    </div>
-                    <div class="card-body">
-                        <h2>Classified as:</h2>
-                        <p>{{device.classification[0]}} with {{(device.classification[1] / device.total * 100).toFixed(2)}}%</p>
-                        <ul>
-                            <li v-for="entry in device.entries">
-                                {{entry[0]}}: {{entry[1]}}
-                            </li>
-                            <li>
-                                Total: {{device.total}}
-                            </li>
-                        </ul>
-                    </div>
+    <div class="row">
+        <div class="col-md-4" v-for="device in devices">
+            <div class="card card-default">
+                <div class="card-header" :style="{'background-color': stringToColor(device.name)}">
+                        {{device.name}}
+                </div>
+                <div class="card-body">
+                    <p>Classified as:
+                    <strong>{{device.classification[0]}}</strong> with {{(device.classification[1] / (device.total - device.unclassifyable) * 100).toFixed(2)}}% (excluding unclassifyable)</p>
+                    <ul>
+                        <li v-for="entry in device.entries">
+                            {{entry[0]}}: {{entry[1]}}
+                        </li>
+                        <li>
+                            Total: {{device.total}}
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -58,6 +54,18 @@
 
                     console.log(sorted);
                 })
+            },
+            stringToColor(str) {
+                if (str == null) {
+                    return "white";
+                }
+                var hash = 9;
+                for (var i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+
+                var shortened = hash % 360;
+                return "hsl(" + shortened + ",100%,70%)";
             }
         },
         name: "Classification",
@@ -74,8 +82,5 @@
         text-transform: capitalize;
     }
 
-    .device {
-        margin-bottom: 16px;
-    }
 
 </style>

@@ -34,6 +34,7 @@
                 apiRow: [],
                 showD: true,
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     height: "100%",
@@ -42,9 +43,9 @@
                             display:true,
                             type: 'linear',
                             ticks: {
-                                min: -30000,
-                                max: 30000,
-                                stepSize: 1000
+                                min: -70000,
+                                max: 80000,
+                                stepSize: 5000
                             }
                         }]
                     }
@@ -73,9 +74,9 @@
                         this.options.scales.yAxes[0].ticks.min = 0;
                         this.options.scales.yAxes[0].ticks.stepSize = 250;
                     } else {
-                        this.options.scales.yAxes[0].ticks.max = 5000;
-                        this.options.scales.yAxes[0].ticks.min = -5000;
-                        this.options.scales.yAxes[0].ticks.stepSize = 250;
+                        this.options.scales.yAxes[0].ticks.max = 80000;
+                        this.options.scales.yAxes[0].ticks.min = -70000;
+                        this.options.scales.yAxes[0].ticks.stepSize = 5000;
                     }
                 } else {
                     this.options.scales.yAxes[0].ticks.max = undefined;

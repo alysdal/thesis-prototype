@@ -1,4 +1,4 @@
-# Machine learning with vibration vibration patterns
+# Machine learning with vibration patterns
 
 Run program with `php -S 0.0.0.0:8000`
 
